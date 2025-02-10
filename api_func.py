@@ -17,12 +17,12 @@ def geocoder(address):
     return toponym_longitude, toponym_lattitude
 
 
-def get_image(toponym_longitude, toponym_lattitude, size):
+def get_image(toponym_longitude, toponym_lattitude, size, map_type):
     params = {
         'll': f"{toponym_longitude},{toponym_lattitude}",
         'spn': f'{size},{size}',
         'size': '650,450',
-        'l': 'map',
+        'l': map_type,
         'z': 2
     }
     url = 'https://static-maps.yandex.ru/1.x/?'

@@ -11,6 +11,10 @@ class MyMainWindow(QMainWindow):
         uic.loadUi('interface.ui', self)
         self.size = 0.1
         self.step = 0.001
+        self.type_map = 'map'
+        self.map_layers = ['map', 'sat', 'sat,skl']
+        self.comboBox.addItems(['схема','спутник','гибрид'])
+        self.comboBox.currentIndexChanged.connect(self.on_combobox_changed)
         self.textEdit.setPlaceholderText("Введите адрес здесь...")
         self.pushButton.clicked.connect(self.pull_image)
 
@@ -45,14 +49,18 @@ class MyMainWindow(QMainWindow):
     def pull_image(self, flag=False):
         if widget := self.focusWidget():
             widget.clearFocus()
+
         if not flag:
             self.get_coords()
         if self.is_valid_coordinate(self.toponym_longitude, self.toponym_lattitude):
-            self.pixmap = QPixmap(get_image(self.toponym_longitude, self.toponym_lattitude, self.size))
+            self.pixmap = QPixmap(get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map))
             self.label.setPixmap(self.pixmap)
         else:
             self.textEdit.setText("Некорректные координаты.")
 
+
+    def on_combobox_changed(self, index):
+        self.type_map = self.map_layers[index]
 
 
 if __name__ == '__main__':
