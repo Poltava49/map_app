@@ -1,3 +1,6 @@
-venv/
+venv
 .idea
 *.png
+*.md
+/venv
+*.pyc
