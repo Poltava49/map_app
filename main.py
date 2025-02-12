@@ -44,14 +44,20 @@ class MyMainWindow(QMainWindow):
         return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
 
     def get_coords(self):
-        self.toponym_longitude, self.toponym_lattitude = geocoder(self.textEdit.toPlainText())
+        self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(self.textEdit.toPlainText())
         self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+        self.pull_responce_info()
+
+
+    def pull_responce_info(self):
+        self.textBrowser.setText(f'{self.full_adress}')
 
 
     def remove_checkpoint(self):
         self.checkpoint = ['']
         self.pull_image()
         self.checkpoint = []
+        self.textBrowser.clear()
 
 
 

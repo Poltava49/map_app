@@ -11,10 +11,10 @@ def geocoder(address):
     response = requests.get(geocoder_api_server, params=geocoder_params)
     if not response:
         pass
-    json_response = response.json()
-    toponym_longitude, toponym_lattitude = \
-    json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]["Point"]["pos"].split(' ')
-    return toponym_longitude, toponym_lattitude
+    json_response = (response.json())["response"]["GeoObjectCollection"]['featureMember'][0]["GeoObject"]
+    full_result = json_response['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
+    toponym_longitude, toponym_lattitude = json_response["Point"]["pos"].split(' ')
+    return toponym_longitude, toponym_lattitude, full_result
 
 
 def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
