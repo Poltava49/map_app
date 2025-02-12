@@ -13,8 +13,9 @@ def geocoder(address):
         pass
     json_response = (response.json())["response"]["GeoObjectCollection"]['featureMember'][0]["GeoObject"]
     full_result = json_response['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
+    adress_index = json_response['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
     toponym_longitude, toponym_lattitude = json_response["Point"]["pos"].split(' ')
-    return toponym_longitude, toponym_lattitude, full_result
+    return toponym_longitude, toponym_lattitude, full_result, adress_index
 
 
 def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):

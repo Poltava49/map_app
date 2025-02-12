@@ -43,14 +43,18 @@ class MyMainWindow(QMainWindow):
     def is_valid_coordinate(self, lat, lon):
         return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
 
+
     def get_coords(self):
-        self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(self.textEdit.toPlainText())
+        self.toponym_longitude, self.toponym_lattitude, self.full_adress, self.adress_index = geocoder(self.textEdit.toPlainText())
         self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
         self.pull_responce_info()
 
 
     def pull_responce_info(self):
-        self.textBrowser.setText(f'{self.full_adress}')
+        if self.checkBox.isChecked():
+            self.textBrowser.setText(f'{self.full_adress} {self.adress_index}')
+        else:
+            self.textBrowser.setText(f'{self.full_adress}')
 
 
     def remove_checkpoint(self):
