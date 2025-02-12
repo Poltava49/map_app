@@ -12,11 +12,13 @@ class MyMainWindow(QMainWindow):
         self.size = 0.1
         self.step = 0.001
         self.type_map = 'map'
+        self.checkpoint = []
         self.map_layers = ['map', 'sat', 'sat,skl']
         self.comboBox.addItems(['схема','спутник','гибрид'])
         self.comboBox.currentIndexChanged.connect(self.on_combobox_changed)
         self.textEdit.setPlaceholderText("Введите адрес здесь...")
         self.pushButton.clicked.connect(self.pull_image)
+        self.pushButton_2.clicked.connect(self.remove_checkpoint)
 
 
     def keyPressEvent(self, event):
@@ -43,6 +45,13 @@ class MyMainWindow(QMainWindow):
 
     def get_coords(self):
         self.toponym_longitude, self.toponym_lattitude = geocoder(self.textEdit.toPlainText())
+        self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+
+
+    def remove_checkpoint(self):
+        self.checkpoint = ['']
+        self.pull_image()
+        self.checkpoint = []
 
 
 
@@ -53,7 +62,7 @@ class MyMainWindow(QMainWindow):
         if not flag:
             self.get_coords()
         if self.is_valid_coordinate(self.toponym_longitude, self.toponym_lattitude):
-            self.pixmap = QPixmap(get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map))
+            self.pixmap = QPixmap(get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map, self.checkpoint))
             self.label.setPixmap(self.pixmap)
         else:
             self.textEdit.setText("Некорректные координаты.")
