@@ -2,7 +2,7 @@ from random import uniform
 import requests
 
 def geocoder(address):
-    geocoder_params = {"apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+    geocoder_params = {"apikey": "8287b6ed-122d-48e1-a4f0-1e1f09386c0f",
                        "geocode": address,
                        "format": "json",
                        "kind": "district"
@@ -23,10 +23,11 @@ def get_image(toponym_longitude, toponym_lattitude, size):
         'spn': f'{size},{size}',
         'size': '650,450',
         'l': 'map',
-        'z': 5
+        'z': 2
     }
     url = 'https://static-maps.yandex.ru/1.x/?'
     response = requests.get(url, params)
+
 
     if response := requests.get(url, params=params):
         with open("picture.png", "wb") as file:
