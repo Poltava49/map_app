@@ -28,17 +28,23 @@ class MyMainWindow(QMainWindow):
             self.pull_image()
         elif event.key() == Qt.Key_Down:
             self.size += x * 2
+            self.pull_image(flag=True)
         elif event.key() == Qt.Key_D:
             self.toponym_longitude = str(float(self.toponym_longitude) + self.step)
+            self.pull_image(flag=True)
         elif event.key() == Qt.Key_A:
             self.toponym_longitude = str(float(self.toponym_longitude) - self.step)
+            self.pull_image(flag=True)
         elif event.key() == Qt.Key_S:
             self.toponym_lattitude = str(float(self.toponym_lattitude) - self.step)
+            self.pull_image(flag=True)
         elif event.key() == Qt.Key_W:
             self.toponym_lattitude = str(float(self.toponym_lattitude) + self.step)
+            self.pull_image(flag=True)
         else:
             super().keyPressEvent(event)
-        self.pull_image(flag=True)
+
+
 
     def is_valid_coordinate(self, lat, lon):
         return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
