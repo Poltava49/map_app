@@ -1,5 +1,5 @@
 import sys
-from PyQt5.Qt import QMainWindow, QApplication
+from PyQt5.Qt import QMainWindow, QApplication, QDialog, QMessageBox, QPushButton, QLabel, QLineEdit, QVBoxLayout
 from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
 from api_func import geocoder, get_image, get_adress, get_organization
@@ -137,11 +137,38 @@ class MyMainWindow(QMainWindow):
             self.info_organization = get_organization(self.full_adress, self.point_x,self.point_y)
             self.textBrowser_3.setText(self.info_organization)
 
+class LoginWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('authorization_window.ui', self)
+        self.setWindowTitle("Авторизация")
+        # self.setFixedSize(300, 150)
+        self.lineEdit_2.setEchoMode(self.lineEdit_2.Password)
+        self.pushButton.clicked.connect(self.check_user)
+        self.pushButton_2.clicked.connect(self.close_dialog)
 
+
+    def close_dialog(self):
+        self.close()
+
+    def check_user(self):
+        # Проверка логина и пароля (заглушка)
+        login = self.lineEdit.text()
+        password = self.lineEdit_2.text()
+
+        if login == "admin" and password == "123":
+            self.accept()  # Закрываем окно с результатом QDialog.Accepted
+        else:
+            QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = MyMainWindow()
-    ex.show()
-    sys.exit(app.exec())
+    login_window = LoginWindow()
+    if login_window.exec_() == QDialog.Accepted:
+        # Если авторизация успешна - показываем главное окно
+        main_window = MyMainWindow()
+        main_window.show()
+        sys.exit(app.exec_())
+    else:
+        sys.exit(app.exec())
