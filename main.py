@@ -2,17 +2,23 @@ import sys
 from PyQt5.Qt import QMainWindow, QApplication
 from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
-from api_func import geocoder, get_image
+from api_func import geocoder, get_image, get_adress
 from PyQt5.QtCore import Qt
 
 class MyMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('interface.ui', self)
-        self.size = 0.1
-        self.step = 0.001
+        self.size = 0.003
+        self.step = 0.0001
         self.type_map = 'map'
+        self.new_x = 0
+        self.new_y = 0
         self.checkpoint = []
+        self.label_2 = ''
+        self.point_x = 0
+        self.point_y = 0
+        self.setMouseTracking(True)
         self.map_layers = ['map', 'sat', 'sat,skl']
         self.comboBox.addItems(['схема','спутник','гибрид'])
         self.comboBox.currentIndexChanged.connect(self.on_combobox_changed)
@@ -45,7 +51,6 @@ class MyMainWindow(QMainWindow):
             self.pull_image(flag=True)
         else:
             super().keyPressEvent(event)
-
 
 
     def is_valid_coordinate(self, lat, lon):
@@ -88,6 +93,35 @@ class MyMainWindow(QMainWindow):
 
     def on_combobox_changed(self, index):
         self.type_map = self.map_layers[index]
+
+
+    def mouseMoveEvent(self, event):
+        start_x, start_y = 380, 365
+        step_x, step_y = 0.00001913, 0.00001209
+        print(f'{event.x(), event.y()}')
+        if (int(event.x()) < 45 or int(event.x()) > 615) or (int(event.y()) < 196 or int(event.y()) > 530):
+            self.textBrowser_2.setText('вышли за границы')
+        else:
+            if event.x() < start_x:
+                self.new_x = abs(start_x - event.x())
+                self.point_x = str(float(self.toponym_longitude) - round((self.new_x * step_x), 4))
+            elif event.x() > start_x:
+                self.new_x = abs(event.x() - start_x)
+                self.point_x = str(float(self.toponym_longitude) + round((self.new_x * step_x), 4))
+            if event.y() < start_y:
+                self.new_y = abs(start_y - event.y())
+                self.point_y = str(float(self.toponym_lattitude) + round((self.new_y * step_y),4))
+            elif event.x() > start_y:
+                self.new_y = abs(start_y - event.y())
+                self.point_y = str(float(self.toponym_lattitude) - round((self.new_y * step_y),4))
+            self.checkpoint.clear()
+            self.checkpoint.append(f"{self.point_x},{self.point_y},ya_ru")
+            self.new_x = 0
+            self.new_y = 0
+            self.pull_responce_info()
+            self.pull_image(flag=True)
+            self.full_adress, self.adress_index = get_adress(self.point_x,self.point_y)
+            self.pull_responce_info()
 
 
 if __name__ == '__main__':
