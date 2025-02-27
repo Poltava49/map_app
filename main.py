@@ -18,7 +18,9 @@ class MyMainWindow(QMainWindow):
         self.comboBox.currentIndexChanged.connect(self.on_combobox_changed)
         self.textEdit.setPlaceholderText("Введите адрес здесь...")
         self.pushButton.clicked.connect(self.pull_image)
+        self.comboBox.currentIndexChanged.connect(self.pull_image)
         self.pushButton_2.clicked.connect(self.remove_checkpoint)
+        self.checkBox.stateChanged.connect(self.pull_responce_info)
 
 
     def keyPressEvent(self, event):
@@ -56,8 +58,9 @@ class MyMainWindow(QMainWindow):
         self.pull_responce_info()
 
 
-    def pull_responce_info(self):
-        if self.checkBox.isChecked():
+
+    def pull_responce_info(self,state=1):
+        if state == 2 :
             self.textBrowser.setText(f'{self.full_adress} {self.adress_index}')
         else:
             self.textBrowser.setText(f'{self.full_adress}')
@@ -74,7 +77,6 @@ class MyMainWindow(QMainWindow):
     def pull_image(self, flag=False):
         if widget := self.focusWidget():
             widget.clearFocus()
-
         if not flag:
             self.get_coords()
         if self.is_valid_coordinate(self.toponym_longitude, self.toponym_lattitude):
