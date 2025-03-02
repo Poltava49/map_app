@@ -1,10 +1,10 @@
 import sys
-from PyQt5.Qt import QMainWindow, QApplication, QDialog, QMessageBox, QPushButton, QLabel, QLineEdit, QVBoxLayout
+from PyQt5.Qt import QMainWindow, QApplication, QDialog, QMessageBox, QSqlDatabase
 from PyQt5.QtGui import QPixmap
 from PyQt5 import uic
 from api_func import geocoder, get_image, get_adress, get_organization
 from PyQt5.QtCore import Qt
-
+import sqlite3
 class MyMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -140,12 +140,20 @@ class MyMainWindow(QMainWindow):
 class LoginWindow(QDialog):
     def __init__(self):
         super().__init__()
+        # Зададим тип базы данных
+        self.connection = sqlite3.connect("map_users_db.sqlite")
         uic.loadUi('authorization_window.ui', self)
         self.setWindowTitle("Авторизация")
-        # self.setFixedSize(300, 150)
+        self.setFixedSize(400, 290)
         self.lineEdit_2.setEchoMode(self.lineEdit_2.Password)
         self.pushButton.clicked.connect(self.check_user)
         self.pushButton_2.clicked.connect(self.close_dialog)
+        self.pushButton_3.clicked.connect(self.add_new_user)
+
+
+    def add_new_user(self):
+        self.second_window = RegistrationWindow()  # Создаем экземпляр второго окна
+        self.second_window.exec_()
 
 
     def close_dialog(self):
@@ -155,11 +163,35 @@ class LoginWindow(QDialog):
         # Проверка логина и пароля (заглушка)
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
-
-        if login == "admin" and password == "123":
-            self.accept()  # Закрываем окно с результатом QDialog.Accepted
+        res = self.connection.cursor().execute(f"""SELECT login, password FROM users""").fetchall()
+        if (login, password) in res:
+            self.accept()
         else:
             QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
+
+class RegistrationWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('reg_window_ui.ui', self)
+        self.connection = sqlite3.connect("map_users_db.sqlite")
+        self.pushButton.clicked.connect(self.add_new_user)
+
+
+
+    def add_new_user(self):
+        name, login, password = self.lineEdit.text(), self.lineEdit_2.text(), self.lineEdit_3.text()
+        try:
+            res = self.connection.cursor().execute(f"""SELECT login FROM users WHERE login = '{login}'""").fetchall()[0][0]
+            if res == login:
+                QMessageBox.warning(self, "Ошибка", "Такой пользователь существует")
+        except:
+                self.connection.cursor().execute(f"""INSERT INTO users (name,login,password) VALUES ('{name}', '{login}', '{password}')""").fetchall()
+                self.connection.commit()
+                QMessageBox.warning(self, "Успех", "Пользователь зарегистрирован")
+                self.close()
+
+
+
 
 
 if __name__ == '__main__':
