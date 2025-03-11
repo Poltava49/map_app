@@ -37,6 +37,7 @@ def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
     }
     url = 'https://static-maps.yandex.ru/1.x/?'
     response = requests.get(url, params)
+    print(response.url)
 
     if response := requests.get(url, params=params):
         with open("picture.png", "wb") as file:
@@ -96,5 +97,4 @@ def get_organization(adress, long, lat):
         org_type = response.json()['features'][1]['properties']['CompanyMetaData']['Categories'][0]['name']
         return f'{org_type} - {org_name}'
     except:
-        print(response.json()['features'])
         return 'Организаций нет'
