@@ -6,25 +6,20 @@ from api_func import geocoder, get_image, get_adress, get_organization
 from PyQt5.QtCore import Qt
 import sqlite3
 class MyMainWindow(QMainWindow):
-    def __init__(self, login):
+    def __init__(self):
         super().__init__()
         uic.loadUi('interface.ui', self)
+        self.full_adress = 'нет адреса'
         self.size = 0.003
         self.step = 0.0001
         self.type_map = 'map'
         self.new_x = 0
         self.new_y = 0
         self.checkpoint = []
-        self.dict_users_selected_places = {}
         self.label_2 = ''
         self.point_x = 0
         self.point_y = 0
         self.info_organization = ''
-        self.current_user_login = login
-        self.connection = sqlite3.connect("map_users_db.sqlite")
-        self.id = (self.connection.cursor().execute(
-            f"""SELECT id FROM users WHERE login = '{self.current_user_login}'""").fetchall())[0][0]
-        self.add_all_user_selected_places()
         self.setMouseTracking(True)
         self.map_layers = ['map', 'sat', 'sat,skl']
         self.comboBox.addItems(['схема','спутник','гибрид'])
@@ -34,56 +29,39 @@ class MyMainWindow(QMainWindow):
         self.comboBox.currentIndexChanged.connect(self.pull_image)
         self.pushButton_2.clicked.connect(self.remove_checkpoint)
         self.checkBox.stateChanged.connect(self.pull_responce_info)
-        self.pushButton_3.clicked.connect(self.add_selected_places)
-        self.pushButton_4.clicked.connect(self.remove_selected_places)
         self.pushButton_5.clicked.connect(self.search_choose_selected_places)
-
-    def add_user_history_search(self):
-        self.listWidget_2.addItem(self.full_adress)
-        self.connection.cursor().execute(
-            f"""INSERT INTO search_history (id, history, coords) VALUES ({self.id},'{self.full_adress}','{self.toponym_longitude},{self.toponym_lattitude}')""")
-        self.connection.commit()
+        self.pushButton_4.clicked.connect(self.remove_selected_places)
+        self.pushButton_3.clicked.connect(self.add_selected_places)
 
 
     def add_selected_places(self):
-        self.listWidget.addItem(self.textEdit_2.toPlainText())
-        self.connection.cursor().execute(
-            f"""UPDATE search_history SET name = '{self.textEdit_2.toPlainText()}'
-            WHERE history = '{self.full_adress}' and id = {self.id}""")
-        self.connection.commit()
+        if not self.textEdit_2.toPlainText() == '' or self.full_adress == '':
+            self.listWidget.addItem(self.textEdit_2.toPlainText())
+            self.listWidget_2.addItem(self.full_adress)
+            db.add_selected_places(self.full_adress)
 
-    #https://static-maps.yandex.ru/1.x/?ll=37.582457%2C+55.581307&spn=0.003%2C0.003&size=650%2C450&l=map&z=2
-    #https://static-maps.yandex.ru/1.x/?ll=37.582457%2C55.581307&spn=0.003%2C0.003&size=650%2C450&l=map&z=2&pt=37.582457%2C55.581307%2Cya_ru
-    def add_all_user_selected_places(self):
+    def remove_selected_places(self):
         try:
-            users_selected_places = (self.connection.cursor().execute(f"""SELECT name, coords FROM search_history 
-                                        WHERE id = {self.id} """).fetchall())
-            for name, coords in users_selected_places:
-                self.dict_users_selected_places[name] = coords
-            self.listWidget.addItems(list(self.dict_users_selected_places.keys()))
+            select_item = self.listWidget.selectedItems()[0].text()
+            for item in main_window.listWidget.selectedItems():
+                row = main_window.listWidget.row(item)  # Получаем индекс строки элемента
+                main_window.listWidget.takeItem(row)
+            db.remove_selected_places(select_item)
         except:
-            print('Нет избранных мест')
+            print("Нет избранных мест")
 
     def search_choose_selected_places(self):
-        self.toponym_longitude, self.toponym_lattitude = self.dict_users_selected_places[(self.listWidget.selectedItems())[0].text()].split(',')
-        self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+        try:
+            self.toponym_longitude, self.toponym_lattitude = db.dict_users_selected_places[(self.listWidget.selectedItems())[0].text()].split(',')
+            self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+        except:
+            print('Нет избранных мест')
         self.pixmap = QPixmap(
             get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map, self.checkpoint))
         self.label.setPixmap(self.pixmap)
         self.checkpoint = []
-
-
-
-
-
-    def remove_selected_places(self):
-        self.connection.cursor().execute(
-            f""" DELETE FROM search_history WHERE name = '{(self.listWidget.selectedItems())[0].text()}' and id = {self.id} """)
-        self.listWidget.selectedItems()
-        self.connection.commit()
-        for item in self.listWidget.selectedItems():
-            row = self.listWidget.row(item)  # Получаем индекс строки элемента
-            self.listWidget.takeItem(row)
+        if not self.textEdit_2.toPlainText() == '':
+            self.listWidget.addItem(self.textEdit_2.toPlainText())
 
 
     def keyPressEvent(self, event):
@@ -118,20 +96,22 @@ class MyMainWindow(QMainWindow):
         try:
             self.toponym_longitude, self.toponym_lattitude, self.full_adress, self.adress_index = geocoder(self.textEdit.toPlainText())
         except:
-            self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(self.textEdit.toPlainText())
+            if not self.textEdit.toPlainText() == '':
+                self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(self.textEdit.toPlainText())
 
         self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
         self.pull_responce_info()
-
+        db.add_user_history_search()
 
 
     def pull_responce_info(self,state=1):
-        if state == 2:
-            self.textBrowser.setText(f'{self.full_adress} {self.adress_index}')
-        else:
-            self.textBrowser.setText(f'{self.full_adress}')
-        self.add_user_history_search()
-
+        try:
+            if state == 2:
+                self.textBrowser.setText(f'{self.full_adress} {self.adress_index}')
+            else:
+                self.textBrowser.setText(f'{self.full_adress}')
+        except:
+            print("Нет полного адреса")
 
 
     def remove_checkpoint(self):
@@ -139,9 +119,7 @@ class MyMainWindow(QMainWindow):
         self.pull_image()
         self.checkpoint = []
         self.textBrowser.clear()
-        self.textBrowser_2.clear()
         self.textBrowser_3.clear()
-
 
 
     def pull_image(self, flag=False):
@@ -161,12 +139,11 @@ class MyMainWindow(QMainWindow):
 
 
     def mouseMoveEvent(self, event):
-
         start_x, start_y = 380, 365
         step_x, step_y = 0.00001843, 0.00001179
         print(f'{event.x(), event.y()}')
-        if (int(event.x()) < 45 or int(event.x()) > 615) or (int(event.y()) < 196 or int(event.y()) > 530):
-            self.textBrowser_2.setText('вышли за границы')
+        if (int(event.x()) < 18 or int(event.x()) > 595) or (int(event.y()) < 190 or int(event.y()) > 500):
+            print('вышли за границы')
         else:
             if event.x() < start_x:
                 self.new_x = abs(start_x - event.x())
@@ -185,16 +162,57 @@ class MyMainWindow(QMainWindow):
             self.checkpoint.append(f"{self.point_x},{self.point_y},ya_ru")
             self.new_x = 0
             self.new_y = 0
-            self.pull_responce_info()
             self.pull_image(flag=True)
             try:
                 self.full_adress, self.adress_index = get_adress(self.point_x,self.point_y)
             except:
                 self.full_adress = get_adress(self.point_x, self.point_y)
-
             self.pull_responce_info()
             self.info_organization = get_organization(self.full_adress, self.point_x,self.point_y)
             self.textBrowser_3.setText(self.info_organization)
+
+
+class DataBase(QMainWindow):
+    def __init__(self, login):
+        super().__init__()
+        self.current_user_login = login
+        self.dict_users_selected_places = {}
+        self.connection = sqlite3.connect("map_users_db.sqlite")
+        self.id = (self.connection.cursor().execute(
+            f"""SELECT id FROM users WHERE login = '{self.current_user_login}'""").fetchall())[0][0]
+        self.add_all_user_selected_places()
+
+
+    def add_user_history_search(self):
+        self.connection.cursor().execute(
+            f"""INSERT OR IGNORE INTO search_history (id, history, coords) VALUES ({self.id},'{main_window.full_adress}','{main_window.toponym_longitude},{main_window.toponym_lattitude}')""")
+        self.connection.commit()
+
+
+    def add_selected_places(self, full_adress):
+        self.connection.cursor().execute(
+            f"""UPDATE search_history SET name = '{main_window.textEdit_2.toPlainText()}'
+            WHERE history = '{full_adress}' and id = {self.id}""")
+        self.connection.commit()
+
+    def add_all_user_selected_places(self):
+        list_history = []
+        try:
+            users_selected_places = (self.connection.cursor().execute(f"""SELECT name, coords, history FROM search_history 
+                                        WHERE id = {self.id} """).fetchall())
+            for name, coords, history in users_selected_places:
+                self.dict_users_selected_places[name] = coords
+                list_history.append(history)
+            main_window.listWidget.addItems(list(self.dict_users_selected_places.keys()))
+            main_window.listWidget_2.addItems(list_history)
+        except:
+            print('Нет избранных мест')
+    def remove_selected_places(self, select_item):
+        self.connection.cursor().execute(
+            f""" DELETE FROM search_history WHERE name = '{select_item[0].text()}' and id = {self.id} """)
+        self.connection.commit()
+
+
 
 class LoginWindow(QDialog):
     def __init__(self):
@@ -220,7 +238,7 @@ class LoginWindow(QDialog):
         self.close()
 
     def check_user(self):
-        # Проверка логина и пароля (заглушка)
+        # Проверка логина и пароля
         self.login = self.lineEdit.text()
         password = self.lineEdit_2.text()
         res = self.connection.cursor().execute(f"""SELECT login, password FROM users""").fetchall()
@@ -257,7 +275,8 @@ if __name__ == '__main__':
     login_window = LoginWindow()
     if login_window.exec_() == QDialog.Accepted:
         # Если авторизация успешна - показываем главное окно
-        main_window = MyMainWindow(login_window.login)
+        main_window = MyMainWindow()
+        db = DataBase(login_window.login)
         main_window.show()
         sys.exit(app.exec_())
     else:
