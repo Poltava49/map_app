@@ -5,21 +5,72 @@ from PyQt5 import uic
 from api_func import geocoder, get_image, get_adress, get_organization
 from PyQt5.QtCore import Qt
 import sqlite3
-class MyMainWindow(QMainWindow):
+
+class Attributes:
+    def __init__(self):
+        self.toponym_longitude = ''
+        self.toponym_lattitude = ''
+        self.current_user_login = ''
+        self.dict_users_selected_places = {}
+        self.checkpoint = []
+        self.full_adress = '-n'
+        self.info_organization = ''
+
+
+class Coords(Attributes):
+    def is_valid_coordinate(self, lat, lon):
+        if len(lat) > 1 or len(lon) > 1:
+            return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
+        return False
+
+
+    def get_coords(self):
+        try:
+            self.toponym_longitude, self.toponym_lattitude, self.full_adress, self.adress_index = geocoder(main_window.textEdit.toPlainText())
+            self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+        except:
+            if not main_window.textEdit.toPlainText() == '':
+                self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(main_window.textEdit.toPlainText())
+                self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+
+        main_window.pull_responce_info()
+        db.add_user_history_search()
+
+
+    def search_choose_selected_places(self):
+        print(main_window.listWidget.selectedItems())
+        try:
+            self.toponym_longitude, self.toponym_lattitude = db.dict_users_selected_places[
+                (main_window.listWidget.selectedItems())[0].text()].split(',')
+            self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+            main_window.pixmap = QPixmap(
+                get_image(self.toponym_longitude, self.toponym_lattitude, main_window.size, main_window.type_map, main_window.checkpoint))
+            main_window.label.setPixmap(main_window.pixmap)
+        except:
+            print('Нет избранных мест')
+
+        self.checkpoint = []
+        if not main_window.textEdit_2.toPlainText() == '':
+            main_window.listWidget.addItem(main_window.textEdit_2.toPlainText())
+
+
+class MyMainWindow(QMainWindow, Attributes):
     def __init__(self):
         super().__init__()
         uic.loadUi('interface.ui', self)
-        self.full_adress = 'нет адреса'
+        # self.full_adress = '-n'
         self.size = 0.003
         self.step = 0.0001
-        self.type_map = 'map'
+        # self.type_map = 'map'
         self.new_x = 0
         self.new_y = 0
-        self.checkpoint = []
+        # self.toponym_longitude = ''
+        # self.toponym_lattitude = ''
+        # self.checkpoint = []
         self.label_2 = ''
         self.point_x = 0
         self.point_y = 0
-        self.info_organization = ''
+        # self.info_organization = ''
         self.setMouseTracking(True)
         self.map_layers = ['map', 'sat', 'sat,skl']
         self.comboBox.addItems(['схема','спутник','гибрид'])
@@ -29,7 +80,7 @@ class MyMainWindow(QMainWindow):
         self.comboBox.currentIndexChanged.connect(self.pull_image)
         self.pushButton_2.clicked.connect(self.remove_checkpoint)
         self.checkBox.stateChanged.connect(self.pull_responce_info)
-        self.pushButton_5.clicked.connect(self.search_choose_selected_places)
+        self.pushButton_5.clicked.connect(coords_point.search_choose_selected_places)
         self.pushButton_4.clicked.connect(self.remove_selected_places)
         self.pushButton_3.clicked.connect(self.add_selected_places)
 
@@ -40,28 +91,32 @@ class MyMainWindow(QMainWindow):
             self.listWidget_2.addItem(self.full_adress)
             db.add_selected_places(self.full_adress)
 
+
     def remove_selected_places(self):
         try:
             select_item = self.listWidget.selectedItems()[0].text()
-            for item in main_window.listWidget.selectedItems():
-                row = main_window.listWidget.row(item)  # Получаем индекс строки элемента
-                main_window.listWidget.takeItem(row)
+            for item in self.listWidget.selectedItems():
+                row = self.listWidget.row(item)  # Получаем индекс строки элемента
+                self.listWidget.takeItem(row)
             db.remove_selected_places(select_item)
         except:
             print("Нет избранных мест")
 
-    def search_choose_selected_places(self):
-        try:
-            self.toponym_longitude, self.toponym_lattitude = db.dict_users_selected_places[(self.listWidget.selectedItems())[0].text()].split(',')
-            self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
-        except:
-            print('Нет избранных мест')
-        self.pixmap = QPixmap(
-            get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map, self.checkpoint))
-        self.label.setPixmap(self.pixmap)
-        self.checkpoint = []
-        if not self.textEdit_2.toPlainText() == '':
-            self.listWidget.addItem(self.textEdit_2.toPlainText())
+
+    # def search_choose_selected_places(self):
+    #     print(self.listWidget.selectedItems())
+    #     try:
+    #         self.toponym_longitude, self.toponym_lattitude = db.dict_users_selected_places[(self.listWidget.selectedItems())[0].text()].split(',')
+    #         self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+    #         self.pixmap = QPixmap(
+    #             get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map, self.checkpoint))
+    #         self.label.setPixmap(self.pixmap)
+    #     except:
+    #         print('Нет избранных мест')
+    #
+    #     self.checkpoint = []
+    #     if not self.textEdit_2.toPlainText() == '':
+    #         self.listWidget.addItem(self.textEdit_2.toPlainText())
 
 
     def keyPressEvent(self, event):
@@ -88,22 +143,23 @@ class MyMainWindow(QMainWindow):
             super().keyPressEvent(event)
 
 
-    def is_valid_coordinate(self, lat, lon):
-        return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
+    # def is_valid_coordinate(self, lat, lon):
+    #     if len(lat) > 1 or len(lon) > 1:
+    #         return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
+    #     return False
 
 
-    def get_coords(self):
-        try:
-            self.toponym_longitude, self.toponym_lattitude, self.full_adress, self.adress_index = geocoder(self.textEdit.toPlainText())
-        except:
-            if not self.textEdit.toPlainText() == '':
-                self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(self.textEdit.toPlainText())
-
-        self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
-        self.pull_responce_info()
-        db.add_user_history_search()
-
-
+    # def get_coords(self):
+    #     try:
+    #         self.toponym_longitude, self.toponym_lattitude, self.full_adress, self.adress_index = geocoder(self.textEdit.toPlainText())
+    #         self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+    #     except:
+    #         if not self.textEdit.toPlainText() == '':
+    #             self.toponym_longitude, self.toponym_lattitude, self.full_adress = geocoder(self.textEdit.toPlainText())
+    #             self.checkpoint.append(f"{self.toponym_longitude},{self.toponym_lattitude},ya_ru")
+    #
+    #     self.pull_responce_info()
+    #     db.add_user_history_search()
     def pull_responce_info(self,state=1):
         try:
             if state == 2:
@@ -112,6 +168,7 @@ class MyMainWindow(QMainWindow):
                 self.textBrowser.setText(f'{self.full_adress}')
         except:
             print("Нет полного адреса")
+
 
 
     def remove_checkpoint(self):
@@ -126,8 +183,8 @@ class MyMainWindow(QMainWindow):
         if widget := self.focusWidget():
             widget.clearFocus()
         if not flag:
-            self.get_coords()
-        if self.is_valid_coordinate(self.toponym_longitude, self.toponym_lattitude):
+            coords_point.get_coords()
+        if coords_point.is_valid_coordinate(self.toponym_longitude, self.toponym_lattitude):
             self.pixmap = QPixmap(get_image(self.toponym_longitude, self.toponym_lattitude, self.size, self.type_map, self.checkpoint))
             self.label.setPixmap(self.pixmap)
         else:
@@ -172,11 +229,13 @@ class MyMainWindow(QMainWindow):
             self.textBrowser_3.setText(self.info_organization)
 
 
-class DataBase(QMainWindow):
+
+
+class DataBase(QMainWindow,Attributes):
     def __init__(self, login):
         super().__init__()
         self.current_user_login = login
-        self.dict_users_selected_places = {}
+        # self.dict_users_selected_places = {}
         self.connection = sqlite3.connect("map_users_db.sqlite")
         self.id = (self.connection.cursor().execute(
             f"""SELECT id FROM users WHERE login = '{self.current_user_login}'""").fetchall())[0][0]
@@ -275,7 +334,9 @@ if __name__ == '__main__':
     login_window = LoginWindow()
     if login_window.exec_() == QDialog.Accepted:
         # Если авторизация успешна - показываем главное окно
+        coords_point = Coords()
         main_window = MyMainWindow()
+
         db = DataBase(login_window.login)
         main_window.show()
         sys.exit(app.exec_())
