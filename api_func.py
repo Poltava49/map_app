@@ -1,8 +1,15 @@
 from random import uniform
 import requests
+from dotenv import load_dotenv
+import os
+load_dotenv('keys.env')
+api_key = os.getenv('API_KEY')
+api_key_org = os.getenv('API_KEY_ORG')
+
+
 
 def geocoder(address):
-    geocoder_params = {"apikey": "8287b6ed-122d-48e1-a4f0-1e1f09386c0f",
+    geocoder_params = {"apikey": api_key,
                        "geocode": address,
                        "format": "json",
                        "kind": "district"
@@ -38,6 +45,7 @@ def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
     url = 'https://static-maps.yandex.ru/1.x/?'
     response = requests.get(url, params)
     print(response.url)
+    print(response.content)
 
     if response := requests.get(url, params=params):
         with open("picture.png", "wb") as file:
@@ -51,7 +59,7 @@ def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
 
 
 def get_adress(long, lat):
-    geocoder_params = {"apikey": "8287b6ed-122d-48e1-a4f0-1e1f09386c0f",
+    geocoder_params = {"apikey": api_key,
                        "geocode": f'{long},{lat}',
                        "format": "json",
                        "lang": "ru_RU"
@@ -69,7 +77,7 @@ def get_adress(long, lat):
         adress_index = json_response['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
         return full_adress, adress_index
     except KeyError:
-        print('Ошибка запроса')
+        # print('Ошибка запроса')
         return full_adress
 
 
@@ -77,9 +85,9 @@ def get_adress(long, lat):
 
 def get_organization(adress, long, lat):
     search_api_server = "https://search-maps.yandex.ru/v1/"
-    api_key ="dda3ddba-c9ea-4ead-9010-f43fbc15c6e3"
+    api_key = api_key_org
     search_params = {
-            "apikey": api_key,
+            "apikey": api_key_org,
             "lang": "ru_RU",
             "text": adress,
             "ll": f"{long},{lat}",
