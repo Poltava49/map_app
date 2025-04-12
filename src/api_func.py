@@ -18,12 +18,17 @@ def geocoder(address):
     full_result = json_response['metaDataProperty']['GeocoderMetaData']['Address']['formatted']
     toponym_longitude, toponym_lattitude = json_response["Point"]["pos"].split(' ')
     try:
-        adress_index = json_response['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
+        if json_response['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']:
+            adress_index = json_response['metaDataProperty']['GeocoderMetaData']['Address']['postal_code']
+            print(toponym_longitude, toponym_lattitude)
+            return toponym_longitude, toponym_lattitude, full_result, adress_index
+        elif json_response["Point"]["pos"].split(' '):
+            return toponym_longitude, toponym_lattitude, full_result
 
-        return toponym_longitude, toponym_lattitude, full_result, adress_index
-    except:
-        print('Ошибка')
-        return toponym_longitude, toponym_lattitude, full_result
+    except Exception as e:
+        print(f'Ошибка - {e}')
+        return None
+
 
 
 def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
@@ -37,14 +42,14 @@ def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
     }
     url = 'https://static-maps.yandex.ru/1.x/?'
     response = requests.get(url, params)
-    print(response.url)
 
-    if response := requests.get(url, params=params):
-        with open("picture.png", "wb") as file:
-            file.write(response.content)
+    try:
+        if response := requests.get(url, params=params):
+            with open("../picture.png", "wb") as file:
+                file.write(response.content)
         return 'picture.png'
-    else:
-        print("Ошибка выполнения запроса")
+    except Exception as e:
+        print(f"Ошибка выполнения запроса - {e}")
         print("Http статус: ", response.status_code, "(", response.reason, ")")
         return None
 
