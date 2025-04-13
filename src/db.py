@@ -5,7 +5,7 @@ import sqlite3
 
 
 class DataBase:
-    def __init__(self,login, main_window):
+    def __init__(self,login, main_window) -> None:
         super().__init__()
         self.main_window = main_window
         self.current_user_login = login
@@ -30,7 +30,7 @@ class DataBase:
             f"""UPDATE search_history SET name = '{name_place}'
             WHERE history = ? and id = ?""",(full_adress, self.id))
         self.connection.commit()
-        self.main_window.remove_selected_name()
+
 
 
     def add_all_user_selected_places(self):

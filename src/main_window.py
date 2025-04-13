@@ -1,21 +1,21 @@
 from PyQt5.Qt import QMainWindow, QPixmap
 from PyQt5 import uic
-from src.db import DataBase
 from api_func import get_image
 from models import AppState
-from app import BaseLogic
+
 
 
 
 
 class MyMainWindow(QMainWindow):
-    def __init__(self,db,state,logic):
+    def __init__(self,db) -> None:
         super().__init__()
+        state = AppState()
         self.initUI()
         self.db =db
         self.state = state
         self.logic = logic
-    def initUI(self):
+    def initUI(self) -> None:
         uic.loadUi('ui_files/interface.ui', self)
         self.setMouseTracking(True)
         self.map_layers = ['map', 'sat', 'sat,skl']

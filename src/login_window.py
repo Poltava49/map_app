@@ -1,23 +1,22 @@
 from PyQt5.Qt import QDialog, QMessageBox
 import sqlite3
 from PyQt5 import uic
-from registration_window import RegistrationWindow
 from models import AppState
 
 
-reg_window = RegistrationWindow()
-app_state = AppState()
 
 class LoginWindow(QDialog):
-    def __init__(self):
+    def __init__(self, reg_window) -> None:
         super().__init__()
+        state = AppState(None, None, None, None, None, None, None, None, None, None, None, None, None,None)
         self.connection = sqlite3.connect("map_users_db.sqlite")
         self.initUI()
-        self.login = app_state.login
+        self.login = state.login
+        self.reg_window = reg_window
 
 
-    def initUI(self):
-        uic.loadUi('ui_files/authorization_window.ui', self)
+    def initUI(self) -> None:
+        uic.loadUi('../ui_files/authorization_window.ui', self)
         self.setWindowTitle("Авторизация")
         self.setFixedSize(400, 290)
         self.lineEdit_2.setEchoMode(self.lineEdit_2.Password)
@@ -27,7 +26,7 @@ class LoginWindow(QDialog):
 
 
     def add_new_user(self):
-        reg_window.exec_()
+        self.reg_window.exec_()
 
 
     def close_dialog(self):

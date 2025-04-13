@@ -6,7 +6,7 @@ from db import DataBase
 
 
 class RegistrationWindow(QDialog):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.initUI()
         self.connection = sqlite3.connect("map_users_db.sqlite")
@@ -14,7 +14,7 @@ class RegistrationWindow(QDialog):
 
 
     def initUI(self):
-        uic.loadUi('ui_files/reg_window.ui', self)
+        uic.loadUi('../ui_files/reg_window.ui', self)
         self.pushButton.clicked.connect(self.add_new_user)
 
 

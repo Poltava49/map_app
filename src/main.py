@@ -11,15 +11,14 @@ from main_window import MyMainWindow
 
 def main() -> None:
     app = QApplication(sys.argv)
-    login_window = LoginWindow()
-    main_window = MyMainWindow()
-    db = DataBase(login_window.login, main_window)
-    state = AppState()
-    logic = BaseLogic()
+    reg_window = RegistrationWindow()
+    login_window = LoginWindow(reg_window)
+    db = DataBase(login_window.login)
+    main_window = MyMainWindow(db)
     if login_window.exec_() == QDialog.Accepted:
-        main_window = MyMainWindow(db, state, logic)
+        logic = BaseLogic(db,main_window)
         main_window.show()
-        sys.exit(app.exec_())
+        # sys.exit(app.exec_())
     else:
         sys.exit(app.exec_())
 

@@ -1,53 +1,59 @@
-from main_window import MyMainWindow
-from db import DataBase
+
 from api_func import geocoder
 from PyQt5.QtCore import Qt
 from models import AppState
 from api_func import get_adress, get_organization
 
 
-main_window = MyMainWindow()
-db = DataBase()
-state = AppState()
-
 
 class BaseLogic:
+
+    def __init__(self, db, main_window) -> None:
+        state = AppState()
+        self.db = db
+        self.state = state
+        self.main_window = main_window
+
+
+
     def is_valid_coordinate(self, lat, lon):
         return (-90 <= float(lat) <= 90) and (-180 <= float(lon) <= 180)
 
 
     def get_coords(self):
         try:
-            main_window.toponym_longitude, main_window.toponym_lattitude, main_window.full_adress, main_window.adress_index = geocoder(main_window.textEdit.toPlainText())
+            self.state.toponym_longitude, self.state.toponym_lattitude, self.state.full_adress, self.state.adress_index = geocoder(self.state.textEdit.toPlainText())
         except:
-            if not main_window.textEdit.toPlainText() == '':
-                main_window.state.toponym_longitude, main_window.toponym_lattitude, main_window.full_adress, main_window.adress_index = geocoder(main_window.textEdit.toPlainText())
+            if not self.state.textEdit.toPlainText() == '':
+                self.state.state.toponym_longitude, self.state.toponym_lattitude, self.state.full_adress, self.state.adress_index = geocoder(self.state.textEdit.toPlainText())
 
-        main_window.checkpoint.append(f"{main_window.toponym_longitude},{main_window.toponym_lattitude},ya_ru")
-        main_window.pull_responce_info()
-        db.add_user_history_search()
+        self.state.checkpoint.append(f"{self.state.toponym_longitude},{self.state.toponym_lattitude},ya_ru")
+        self.main_window.pull_responce_info()
+        self.db.add_user_history_search()
 
 
     def keyPressEvent(self, event):
         x = 0.015
-        if event.key() == Qt.Key_Up and main_window.size >= 0.011:
-            main_window.size -= x * 2
-            main_window.pull_image()
+        if event.key() == Qt.Key_Up and self.state.size >= 0.011:
+            self.state.size -= x * 2
+            self.main_window.pull_image()
+
         elif event.key() == Qt.Key_Down:
-            main_window.size += x * 2
-            main_window.pull_image(flag=True)
+            self.state.size += x * 2
+            self.main_window.pull_image(flag=True)
         elif event.key() == Qt.Key_D:
-            main_window.toponym_longitude = str(float(main_window.toponym_longitude) + main_window.step)
-            main_window.pull_image(flag=True)
+            self.state.toponym_longitude = str(float(self.state.toponym_longitude) + self.state.step)
+            self.main_window.pull_image(flag=True)
         elif event.key() == Qt.Key_A:
-            main_window.toponym_longitude = str(float(main_window.toponym_longitude) - main_window.step)
-            main_window.pull_image(flag=True)
+            self.state.toponym_longitude = str(float(self.state.toponym_longitude) - self.state.step)
+            self.main_window.pull_image(flag=True)
         elif event.key() == Qt.Key_S:
-            main_window.toponym_lattitude = str(float(main_window.state.toponym_lattitude) - main_window.step)
-            main_window.pull_image(flag=True)
+            self.state.toponym_lattitude = str(float(self.state.state.toponym_lattitude) - self.state.step)
+            self.main_window.pull_image(flag=True)
         elif event.key() == Qt.Key_W:
-            main_window.toponym_lattitude = str(float(main_window.toponym_lattitude) + main_window.step)
-            main_window.pull_image(flag=True)
+            self.state.toponym_lattitude = str(float(self.state.toponym_lattitude) + self.state.step)
+            self.main_window.pull_image(flag=True)
+
 
     def mouseMoveEvent(self, event):
         start_x, start_y = 380, 365
@@ -57,27 +63,27 @@ class BaseLogic:
             print('вышли за границы')
         else:
             if event.x() < start_x:
-                state.new_x = abs(start_x - event.x())
-                state.point_x = str(float(state.toponym_longitude) - round((state.new_x * step_x), 4))
+                self.state.new_x = abs(start_x - event.x())
+                self.state.point_x = str(float(self.state.toponym_longitude) - round((self.state.new_x * step_x), 4))
             elif event.x() > start_x:
-                state.new_x = abs(event.x() - start_x)
-                state.point_x = str(float(state.toponym_longitude) + round((state.new_x * step_x), 4))
+                self.state.new_x = abs(event.x() - start_x)
+                self.state.point_x = str(float(self.state.toponym_longitude) + round((self.state.new_x * step_x), 4))
             if event.y() < start_y:
-                state.new_y = abs(start_y - event.y())
-                state.point_y = str(float(state.toponym_lattitude) + round((state.new_y * step_y), 4))
+                self.state.new_y = abs(start_y - event.y())
+                self.state.point_y = str(float(self.state.toponym_lattitude) + round((self.state.new_y * step_y), 4))
             elif event.y() > start_y:
-                state.new_y = abs(event.y()-start_y)
-                state.point_y = str(float(state.toponym_lattitude) - round((state.new_y * step_y), 4))
+                self.state.new_y = abs(event.y()-start_y)
+                self.state.point_y = str(float(self.state.toponym_lattitude) - round((self.state.new_y * step_y), 4))
 
-            state.checkpoint.clear()
-            state.checkpoint.append(f"{state.point_x},{state.point_y},ya_ru")
-            state.new_x = 0
-            state.new_y = 0
-            main_window.pull_image(flag=True)
+            self.state.checkpoint.clear()
+            self.state.checkpoint.append(f"{self.state.point_x},{self.state.point_y},ya_ru")
+            self.state.new_x = 0
+            self.state.new_y = 0
+            self.main_window.pull_image(flag=True)
             try:
-                state.full_adress, state.adress_index = get_adress(state.point_x, state.point_y)
+                self.state.full_adress, self.state.adress_index = get_adress(self.state.point_x, self.state.point_y)
             except:
-                state.full_adress = get_adress(state.point_x, state.point_y)
-            main_window.pull_responce_info()
-            state.info_organization = get_organization(state.full_adress, state.point_x, state.point_y)
-            main_window.textBrowser_3.setText(state.info_organization)
+                self.state.full_adress = get_adress(self.state.point_x, self.state.point_y)
+            self.main_window.pull_responce_info()
+            self.state.info_organization = get_organization(self.state.full_adress, self.state.point_x, self.state.point_y)
+            self.main_window.textBrowser_3.setText(self.state.info_organization)
