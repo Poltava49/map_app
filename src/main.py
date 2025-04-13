@@ -1,22 +1,23 @@
 import sys
-from dotenv import load_dotenv
 from PyQt5.Qt import QApplication, QDialog
-from src.models import AppState
-from src.login_window import LoginWindow
-from src.app import BaseLogic
-from src.db import DataBase
-from src.registration_window import RegistrationWindow
-from src.main_window import MyMainWindow
+from models import AppState
+from login_window import LoginWindow
+from app import BaseLogic
+from db import DataBase
+from registration_window import RegistrationWindow
+from main_window import MyMainWindow
+
 
 
 def main() -> None:
-    load_dotenv()
     app = QApplication(sys.argv)
     login_window = LoginWindow()
-    db = DataBase(login_window.login)
+    main_window = MyMainWindow()
+    db = DataBase(login_window.login, main_window)
+    state = AppState()
+    logic = BaseLogic()
     if login_window.exec_() == QDialog.Accepted:
-        main_window = MyMainWindow()
-
+        main_window = MyMainWindow(db, state, logic)
         main_window.show()
         sys.exit(app.exec_())
     else:

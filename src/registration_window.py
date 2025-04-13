@@ -3,13 +3,13 @@ import sqlite3
 from PyQt5 import uic
 from db import DataBase
 
-db = DataBase()
+
 
 class RegistrationWindow(QDialog):
     def __init__(self):
         super().__init__()
         self.initUI()
-        db.connection = sqlite3.connect("map_users_db.sqlite")
+        self.connection = sqlite3.connect("map_users_db.sqlite")
 
 
 

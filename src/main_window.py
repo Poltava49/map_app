@@ -6,14 +6,15 @@ from models import AppState
 from app import BaseLogic
 
 
-db = DataBase()
-state = AppState()
-logic = BaseLogic()
+
 
 class MyMainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self,db,state,logic):
         super().__init__()
         self.initUI()
+        self.db =db
+        self.state = state
+        self.logic = logic
     def initUI(self):
         uic.loadUi('ui_files/interface.ui', self)
         self.setMouseTracking(True)
@@ -33,7 +34,7 @@ class MyMainWindow(QMainWindow):
         if not self.textEdit_2.toPlainText() == '' or self.state.full_adress == '':
             self.listWidget.addItem(self.textEdit_2.toPlainText())
             self.listWidget_2.addItem(self.state.full_adress)
-            db.add_selected_places(self.full_adress, self.textEdit_2.toPlainText())
+            self.db.add_selected_places(self.full_adress, self.textEdit_2.toPlainText())
 
 
     def add_users_seleced_places(self, names:list):
@@ -54,7 +55,7 @@ class MyMainWindow(QMainWindow):
             for item in self.listWidget.selectedItems():
                 row = self.listWidget.row(item)  # Получаем индекс строки элемента
                 self.listWidget.takeItem(row)
-            db.remove_selected_places(select_item)
+            self.db.remove_selected_places(select_item)
         except Exception as e:
             print(f'Ошибка - {e}. Нет избранных мест')
 
@@ -62,16 +63,16 @@ class MyMainWindow(QMainWindow):
     def search_choose_selected_places(self):
         try:
             if self.listWidget.selectedItems()[0].text().split(',') != '':
-                state.toponym_longitude, state.toponym_lattitude = db.dict_users_selected_places
-                state.checkpoint.append(f"{state.toponym_longitude},{state.toponym_lattitude},ya_ru")
+                self.state.toponym_longitude, self.state.toponym_lattitude = self.db.dict_users_selected_places
+                self.state.checkpoint.append(f"{self.state.toponym_longitude},{self.state.toponym_lattitude},ya_ru")
             else:
                 if not self.textEdit_2.toPlainText() == '':
                     self.listWidget.addItem(self.textEdit_2.toPlainText())
             self.pixmap = QPixmap(
-                get_image(state.toponym_longitude, state.toponym_lattitude, state.size,state.type_map,state.checkpoint))
+                get_image(self.state.toponym_longitude, self.state.toponym_lattitude, self.state.size, self.state.type_map, self.state.checkpoint))
             self.label.setPixmap(self.pixmap)
             self.pull_responce_info()
-            state.checkpoint = []
+            self.state.checkpoint = []
         except Exception as e:
             print(f'Ошибка - {e}. Нет избранных мест')
 
@@ -81,18 +82,18 @@ class MyMainWindow(QMainWindow):
             widget.clearFocus()
         if not flag:
             self.get_coords()
-        if logic.is_valid_coordinate(state.toponym_longitude, state.toponym_lattitude):
-            self.pixmap = QPixmap(get_image(state.toponym_longitude, state.toponym_lattitude, state.size,
-                                            state.type_map, state.checkpoint))
+        if self.logic.is_valid_coordinate(self.state.toponym_longitude, self.state.toponym_lattitude):
+            self.pixmap = QPixmap(get_image(self.state.toponym_longitude, self.state.toponym_lattitude, self.state.size,
+                                            self.state.type_map, self.state.checkpoint))
             self.label.setPixmap(self.pixmap)
         else:
             self.textEdit.setText("Некорректные координаты.")
 
 
     def remove_checkpoint(self):
-        state.checkpoint = ['']
+        self.state.checkpoint = ['']
         self.pull_image()
-        state.checkpoint = []
+        self.state.checkpoint = []
         self.textBrowser.clear()
         self.textBrowser_3.clear()
 
@@ -100,13 +101,13 @@ class MyMainWindow(QMainWindow):
     def pull_responce_info(self,state=1):
         try:
             if state == 2:
-                self.textBrowser.setText(f'{state.full_adress} {state.adress_index}')
+                self.textBrowser.setText(f'{self.state.full_adress} {self.state.adress_index}')
             else:
-                self.textBrowser.setText(f'{state.full_adress}')
+                self.textBrowser.setText(f'{self.state.full_adress}')
         except:
             print("Нет полного адреса")
 
     def on_combobox_changed(self, index):
-        state.type_map = self.map_layers[index]
+        self.state.type_map = self.map_layers[index]
 
 

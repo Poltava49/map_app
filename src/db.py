@@ -1,9 +1,13 @@
-from main_window import MyMainWindow
+
 import sqlite3
-main_window = MyMainWindow()
+
+
+
+
 class DataBase:
-    def __init__(self,login):
+    def __init__(self,login, main_window):
         super().__init__()
+        self.main_window = main_window
         self.current_user_login = login
         self.dict_users_selected_places = {}
         self.connection = sqlite3.connect("map_users_db.sqlite")
@@ -26,7 +30,7 @@ class DataBase:
             f"""UPDATE search_history SET name = '{name_place}'
             WHERE history = ? and id = ?""",(full_adress, self.id))
         self.connection.commit()
-        main_window.remove_selected_name()
+        self.main_window.remove_selected_name()
 
 
     def add_all_user_selected_places(self):
@@ -37,8 +41,8 @@ class DataBase:
             for name, coords, history, self.index in users_selected_places:
                 self.dict_users_selected_places[name] = coords
                 list_history.append(history)
-            main_window.add_users_seleced_places(list(self.dict_users_selected_places.keys()))
-            main_window.add_user_list_history(list_history)
+            self.main_window.add_users_seleced_places(list(self.dict_users_selected_places.keys()))
+            self.main_window.add_user_list_history(list_history)
         except Exception as e:
             print(f'Ошибка - {e}. Нет избранных мест')
 
