@@ -9,18 +9,33 @@ from main_window import MyMainWindow
 
 
 
-def main() -> None:
+# def main() -> None:
+#     app = QApplication(sys.argv)
+#     reg_window = RegistrationWindow()
+#     login_window = LoginWindow(reg_window)
+#     reg_window.show()
+#     db = DataBase(login_window.login)
+#     main_window = MyMainWindow(db)
+#     if login_window.exec_() == QDialog.Accepted:
+#         logic = BaseLogic(db,main_window)
+#         main_window.show()
+#         # sys.exit(app.exec_())
+#     else:
+#         sys.exit(app.exec_())
+
+
+def main():
     app = QApplication(sys.argv)
     reg_window = RegistrationWindow()
     login_window = LoginWindow(reg_window)
-    db = DataBase(login_window.login)
-    main_window = MyMainWindow(db)
+
     if login_window.exec_() == QDialog.Accepted:
-        logic = BaseLogic(db,main_window)
+        db = DataBase(login_window.login)
+        main_window = MyMainWindow(db)
         main_window.show()
-        # sys.exit(app.exec_())
-    else:
         sys.exit(app.exec_())
+    else:
+        sys.exit(app.exec())
 
 
 if __name__ == '__main__':

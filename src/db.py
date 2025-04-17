@@ -5,9 +5,8 @@ import sqlite3
 
 
 class DataBase:
-    def __init__(self,login, main_window) -> None:
+    def __init__(self,login) -> None:
         super().__init__()
-        self.main_window = main_window
         self.current_user_login = login
         self.dict_users_selected_places = {}
         self.connection = sqlite3.connect("map_users_db.sqlite")
@@ -51,3 +50,4 @@ class DataBase:
         self.connection.cursor().execute(
             f""" DELETE FROM search_history WHERE name = ? and id = ?""", (select_item, self.id))
         self.connection.commit()
+

@@ -3,6 +3,8 @@ from PyQt5 import uic
 from api_func import get_image
 from models import AppState
 
+from app import *
+
 
 
 
@@ -10,13 +12,13 @@ from models import AppState
 class MyMainWindow(QMainWindow):
     def __init__(self,db) -> None:
         super().__init__()
-        state = AppState()
+        state = AppState(None,None,None,None,None,None,None,None,None,None,None,None,None,None)
         self.initUI()
         self.db =db
         self.state = state
-        self.logic = logic
+
     def initUI(self) -> None:
-        uic.loadUi('ui_files/interface.ui', self)
+        uic.loadUi('../ui_files/interface.ui', self)
         self.setMouseTracking(True)
         self.map_layers = ['map', 'sat', 'sat,skl']
         self.comboBox.addItems(['схема', 'спутник', 'гибрид'])
@@ -81,7 +83,7 @@ class MyMainWindow(QMainWindow):
         if widget := self.focusWidget():
             widget.clearFocus()
         if not flag:
-            self.get_coords()
+            app.get_coords()
         if self.logic.is_valid_coordinate(self.state.toponym_longitude, self.state.toponym_lattitude):
             self.pixmap = QPixmap(get_image(self.state.toponym_longitude, self.state.toponym_lattitude, self.state.size,
                                             self.state.type_map, self.state.checkpoint))
