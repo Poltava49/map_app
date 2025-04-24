@@ -5,6 +5,7 @@ import os
 load_dotenv('../keys.env')
 api_key = os.getenv('API_KEY')
 api_key_org = os.getenv('API_KEY_ORG')
+print(api_key)
 import requests
 
 def geocoder(address):
@@ -15,6 +16,7 @@ def geocoder(address):
                        }
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
     response = requests.get(geocoder_api_server, params=geocoder_params)
+    print(response.content)
 
     if not response:
         print("Ошибка выполнения запроса: Tut ")

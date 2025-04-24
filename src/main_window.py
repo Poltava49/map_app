@@ -1,7 +1,7 @@
 from PyQt5.Qt import QMainWindow, QPixmap
 from PyQt5 import uic
 from api_func import get_image
-from models import AppState
+from models import SearchHistory
 
 from app import *
 
@@ -27,11 +27,20 @@ class MyMainWindow(QMainWindow):
         self.pushButton_4.clicked.connect(self.remove_selected_places)
         self.pushButton_3.clicked.connect(self.add_selected_places)
 
+    def get_adress(self):
+        self.toponym_longitude, self.toponym_lattitude, self.full_adress, self.adress_index = (
+        self.app_logic.get_coords(
+            self.textEdit.toPlainText()))
+        self.add_checkpoint(self.toponym_longitude, self.toponym_lattitude)
+
+    def add_checkpoint(self, lon, lat):
+        self.checkpoint.append(f"{lon},{lat},ya_ru")
+
     def add_selected_places(self):
-        if not self.textEdit_2.toPlainText() == '' or self.state.full_adress == '':
+        if not self.textEdit_2.toPlainText() == '' or self.full_adress == '':
             self.listWidget.addItem(self.textEdit_2.toPlainText())
             self.listWidget_2.addItem(self.state.full_adress)
-            self.db.add_selected_places(self.full_adress, self.textEdit_2.toPlainText())
+            self.app_logic.add_selected_places(self.full_adress, self.textEdit_2.toPlainText())
 
     def add_users_seleced_places(self, names: list):
         self.listWidget.addItems(names)
@@ -48,14 +57,14 @@ class MyMainWindow(QMainWindow):
             for item in self.listWidget.selectedItems():
                 row = self.listWidget.row(item)  # Получаем индекс строки элемента
                 self.listWidget.takeItem(row)
-            self.db.remove_selected_places(select_item)
+            self.app_logic.remove_selected_places(select_item)
         except Exception as e:
             print(f'Ошибка - {e}. Нет избранных мест')
 
     def search_choose_selected_places(self):
         try:
             if self.listWidget.selectedItems()[0].text().split(',') != '':
-                self.state.toponym_longitude, self.state.toponym_lattitude = self.db.dict_users_selected_places
+                self.toponym_longitude, self.toponym_lattitude = self.db.dict_users_selected_places
                 self.state.checkpoint.append(f"{self.state.toponym_longitude},{self.state.toponym_lattitude},ya_ru")
             else:
                 if not self.textEdit_2.toPlainText() == '':
@@ -73,10 +82,10 @@ class MyMainWindow(QMainWindow):
         if widget := self.focusWidget():
             widget.clearFocus()
         if not flag:
-            app.get_coords()
-        if self.logic.is_valid_coordinate(self.state.toponym_longitude, self.state.toponym_lattitude):
-            self.pixmap = QPixmap(get_image(self.state.toponym_longitude, self.state.toponym_lattitude, self.state.size,
-                                            self.state.type_map, self.state.checkpoint))
+            self.get_adress()
+        if self.app_logic.is_valid_coordinate(self.toponym_longitude, self.toponym_lattitude):
+            self.pixmap = QPixmap(get_image(self.toponym_longitude, self.toponym_lattitude, self.size,
+                                            self.type_map, self.checkpoint))
             self.label.setPixmap(self.pixmap)
         else:
             self.textEdit.setText("Некорректные координаты.")

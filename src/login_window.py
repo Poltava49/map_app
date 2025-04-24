@@ -38,5 +38,6 @@ class LoginWindow(QDialog):
         else:
             QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
 
+
     def get_user_login(self):
         return self.login

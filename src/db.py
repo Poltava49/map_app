@@ -8,6 +8,7 @@ class DataBase:
         self.init_db()
         self.connection = sqlite3.connect("../db/map_users_db.sqlite")
 
+
     def init_db(self):
         """Создаем базу при инициализации"""
         path_db = "../db/map_users_db.sqlite"
@@ -39,7 +40,7 @@ class DataBase:
     def validation_user_enter(self, login, password):
         try:
             res = self.connection.cursor().execute(f"""SELECT ?, ? FROM users""", (login, password)).fetchall()
-            print(res)
+
             return res
         except Exception as e:
             return False
@@ -58,6 +59,7 @@ class DataBase:
                 f"""INSERT INTO search_history (id, history, coords, index_adress) VALUES (?,?,?,?)""", (
                     user_id, full_adress, toponym_longitude, toponym_lattitude, adress_index))
             self.connection.commit()
+            self.connection.close()
         except Exception as e:
             print(f"Ошибка - {e}. В базе есть история поиска по данному адресу")
 
@@ -66,15 +68,17 @@ class DataBase:
             f"""UPDATE search_history SET name = '{name_place}'
             WHERE history = ? and id = ?""", (full_adress, self.user_id))
         self.connection.commit()
+        self.connection.close()
 
     def add_all_user_selected_places(self, user_id):
         list_history = []
         try:
             users_selected_places = (self.connection.cursor().execute(f"""SELECT name, coords, history, index_adress FROM search_history 
                                         WHERE id = ?""", (user_id,)).fetchall())
-            for name, coords, history, self.index in users_selected_places:
-                self.dict_users_selected_places[name] = coords
-                list_history.append(history)
+            return users_selected_places
+            # for name, coords, history, self.index in users_selected_places:
+            #     self.dict_users_selected_places[name] = coords
+            #     list_history.append(history)
         except Exception as e:
             print(f'Ошибка - {e}. Нет избранных мест')
 
@@ -82,3 +86,4 @@ class DataBase:
         self.connection.cursor().execute(
             f""" DELETE FROM search_history WHERE name = ? and id = ?""", (select_item, self.id))
         self.connection.commit()
+        self.connection.close()
