@@ -1,7 +1,7 @@
 from PyQt5.Qt import QDialog, QMessageBox
 import sqlite3
 from PyQt5 import uic
-from models import AppState
+from src.models import AppState
 
 
 class LoginWindow(QDialog):

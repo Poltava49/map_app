@@ -1,13 +1,13 @@
 import sqlite3
 import os
+import config
 from models import SearchHistory, UserAttributes
 
 
 class DataBase:
-    def __init__(self) -> None:
+    def __init__(self, db_file_path: str = config.DB_FILE_PATH) -> None:
         self.init_db()
-        self.connection = sqlite3.connect("../db/map_users_db.sqlite")
-
+        self.connection = sqlite3.connect(db_file_path)
 
     def init_db(self):
         """Создаем базу при инициализации"""
@@ -101,3 +101,15 @@ class DataBase:
             f""" DELETE FROM search_history WHERE name = ? and user_id = ?""", (select_item, self.id))
         self.connection.commit()
         # self.connection.close()
+
+    def get_cache(self, url, params):
+        list_history = []
+        try:
+            users_selected_places = (self.connection.cursor().execute(f"""SELECT name, coords, history, index_adress FROM search_history 
+                                        WHERE user_id = ?""", (user_id,)).fetchall())
+            return users_selected_places
+            # for name, coords, history, self.index in users_selected_places:
+            #     self.dict_users_selected_places[name] = coords
+            #     list_history.append(history)
+        except Exception as e:
+            print(f'Ошибка - {e}. Нет избранных мест')

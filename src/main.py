@@ -1,11 +1,11 @@
 import sys
 from PyQt5.Qt import QApplication, QDialog
-from models import AppState
-from login_window import LoginWindow
-from app import BaseLogic
-from db import DataBase
-from registration_window import RegistrationWindow
-from main_window import MyMainWindow
+from src.models import AppState
+from src.login_window import LoginWindow
+from src.app import BaseLogic
+from src.db import DataBase
+from src.registration_window import RegistrationWindow
+from src.main_window import MyMainWindow
 
 
 def main():

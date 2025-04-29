@@ -8,7 +8,7 @@ from app import *
 
 
 class MyMainWindow(QMainWindow):
-    def __init__(self, logic) -> None:
+    def __init__(self, logic: BaseLogic) -> None:
         super().__init__()
         self.initUI()
         self.app_logic = logic
@@ -78,7 +78,8 @@ class MyMainWindow(QMainWindow):
             else:
                 if not self.textEdit_2.toPlainText() == '':
                     self.listWidget.addItem(self.textEdit_2.toPlainText())
-            self.pixmap = QPixmap(
+            self.pixmap = QPixmap()
+            self.pixmap.loadFromData(
                 get_image(self.toponym_longitude, self.toponym_lattitude, self.size,
                           self.type_map, self.checkpoint))
             self.label.setPixmap(self.pixmap)
