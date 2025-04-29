@@ -22,22 +22,23 @@ class LoginWindow(QDialog):
         self.pushButton_2.clicked.connect(self.close_dialog)
         self.pushButton_3.clicked.connect(self.add_new_user)
 
+    def validation_user(self):
+        self.login = self.lineEdit.text()
+        password = self.lineEdit_2.text()
+        res = self.db.validation_user_enter(self.login, password)
+        if (self.login, password) in res:
+            self.pull_login(self.login)
+            self.accept()
+        else:
+            QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
+
+    def pull_login(self, login):
+        self.login = login
+    def get_user_login(self):
+        return self.login
+
     def add_new_user(self):
         self.reg_window.exec_()
 
     def close_dialog(self):
         self.close()
-
-    def validation_user(self):
-        self.login = self.lineEdit.text()
-        password = self.lineEdit_2.text()
-        res = self.db.validation_user_enter(self.login, password)
-        if res:
-            if (self.login, password) in res:
-                self.accept()
-        else:
-            QMessageBox.warning(self, "Ошибка", "Неверный логин или пароль")
-
-
-    def get_user_login(self):
-        return self.login

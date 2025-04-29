@@ -41,6 +41,7 @@ def geocoder(address):
 
 def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
     params = {
+        'apikey':  api_key,
         'll': f"{toponym_longitude},{toponym_lattitude}",
         'spn': f'{size},{size}',
         'size': '650,450',
@@ -50,16 +51,22 @@ def get_image(toponym_longitude, toponym_lattitude, size, map_type, point):
     }
     url = 'https://static-maps.yandex.ru/1.x/?'
     response = requests.get(url, params)
-
+    print("В Апи грузим картинку")
+    print(response.reason)
+    print(response.status_code)
     try:
         if response := requests.get(url, params=params):
             with open("../picture.png", "wb") as file:
                 file.write(response.content)
-        return 'picture.png'
+                print("картинка записана")
+        return '../picture.png'
     except Exception as e:
         print(f"Ошибка выполнения запроса - {e}")
         print("Http статус: ", response.status_code, "(", response.reason, ")")
-        return None
+
+    finally:
+        if os.path.exists("../picture.png"):
+            return '../picture.png'
 
 
 

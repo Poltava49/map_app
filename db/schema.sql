@@ -1,6 +1,6 @@
 -- users определение
 
-CREATE TABLE users
+CREATE TABLE IF NOT EXISTS users
 (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE users
 
 -- search_history определение
 
-CREATE TABLE search_history
+CREATE TABLE IF NOT EXISTS search_history
 (
     user_id INTEGER,
     name VARCHAR(255),

@@ -22,5 +22,6 @@ class RegistrationWindow(QDialog):
             res = self.db.add_new_user(UserAttributes(name=name, login=login, password=password))
             if res:
                 QMessageBox.warning(self, "Успех", "Пользователь зарегистрирован")
+                self.close()
             else:
                 QMessageBox.warning(self, "Ошибка при регистрации пользователя")
